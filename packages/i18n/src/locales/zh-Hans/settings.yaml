@@ -374,8 +374,56 @@ pages:
       title: 发声
     title: 机体模块
     vision:
-      description: 视觉
+      description: 让AIRI能够看到你的屏幕、摄像头或特定窗口
       title: 视觉
+      provider-description: 选择具有视觉功能的聊天提供商
+      no-providers: 未配置提供商
+      no-providers-hint: 点击此处设置聊天提供商
+      model-selection:
+        title: 模型
+        description: 选择具有视觉功能的模型
+        vision-only: 视觉模型
+        all-models: 所有模型
+      capture-settings:
+        title: 捕获设置
+      capture-source:
+        label: 捕获来源
+        description: 选择AIRI可以看到的内容
+        screen: 屏幕共享
+        camera: 摄像头 / 网络摄像头
+        window: 特定窗口（桌面版）
+      analysis-mode:
+        label: 分析模式
+        description: AIRI分析所见内容的频率
+        on-demand: 按需（手动）
+        continuous: 持续（自动）
+      capture-interval:
+        label: 捕获间隔
+        description: 捕获和分析的频率
+      compression:
+        label: 图像质量
+        description: 低质量 = 更小 = 更快且更便宜
+      info:
+        title: 隐私说明
+        point1: 图像仅在内存中处理
+        point2: 图像不会保存到磁盘
+        point3: 图像将发送到您选择的提供商API
+      test:
+        title: 视觉测试
+        not-configured: 视觉未配置
+        not-configured-hint: 请选择提供商和模型以测试视觉
+        start-capture: 开始捕获
+        stop-capture: 停止捕获
+        analyze-now: 立即分析
+        analyzing: 分析中...
+        quick-test: 快速测试
+        error: 错误
+        result: 分析结果
+        placeholder: 开始捕获并分析以查看结果
+      status:
+        capturing: 捕获中
+        not-capturing: 未捕获
+        continuous: 持续模式
     x:
       description: X / Twitter 的浏览和使用
       title: X / Twitter

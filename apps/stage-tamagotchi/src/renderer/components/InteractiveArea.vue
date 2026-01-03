@@ -13,6 +13,7 @@ import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { visionTools } from '../stores/tools/builtin/vision'
 import { widgetsTools } from '../stores/tools/builtin/widgets'
 
 const messageInput = ref('')
@@ -47,12 +48,14 @@ async function handleSend() {
 
   try {
     const providerConfig = providersStore.getProviderConfig(activeProvider.value)
+    // Combine all available tools
+    const allTools = async () => [...await widgetsTools(), ...await visionTools()]
     await send(textToSend, {
       model: activeModel.value,
       chatProvider: await providersStore.getProviderInstance<ChatProvider>(activeProvider.value),
       providerConfig,
       attachments: attachmentsToSend,
-      tools: widgetsTools,
+      tools: allTools,
     })
 
     attachmentsToSend.forEach(att => URL.revokeObjectURL(att.url))

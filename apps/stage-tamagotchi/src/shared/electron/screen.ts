@@ -1,4 +1,4 @@
-import type { Display, screen as electronScreen, Point } from 'electron'
+import type { desktopCapturer, Display, screen as electronScreen, Point, SourcesOptions } from 'electron'
 
 import { defineEventa, defineInvokeEventa } from '@moeru/eventa'
 
@@ -13,6 +13,17 @@ const dipToScreenRect = defineInvokeEventa<ReturnType<typeof electronScreen.dipT
 const screenToDipPoint = defineInvokeEventa<ReturnType<typeof electronScreen.screenToDipPoint>, Parameters<typeof electronScreen.screenToDipPoint>[0]>('eventa:invoke:electron:screen:screen-to-dip-point')
 const screenToDipRect = defineInvokeEventa<ReturnType<typeof electronScreen.screenToDipRect>, Parameters<typeof electronScreen.screenToDipRect>[1]>('eventa:invoke:electron:screen:screen-to-dip-rect')
 
+// Desktop capturer for screen/window capture
+export interface DesktopCapturerSource {
+  id: string
+  name: string
+  thumbnail: string // base64 data URL
+  display_id: string
+  appIcon: string | null // base64 data URL or null
+}
+
+const getDesktopSources = defineInvokeEventa<DesktopCapturerSource[], SourcesOptions>('eventa:invoke:electron:screen:get-desktop-sources')
+
 export const screen = {
   getAllDisplays,
   getPrimaryDisplay,
@@ -21,4 +32,5 @@ export const screen = {
   dipToScreenRect,
   screenToDipPoint,
   screenToDipRect,
+  getDesktopSources,
 }

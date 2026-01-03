@@ -374,8 +374,56 @@ pages:
       title: 音声
     title: モジュール
     vision:
-      description: 視覚
+      description: AIRIが画面、カメラ、または特定のウィンドウを見ることができるようにする
       title: 視覚
+      provider-description: 視覚機能を持つチャットプロバイダーを選択
+      no-providers: プロバイダーが設定されていません
+      no-providers-hint: クリックしてチャットプロバイダーを設定
+      model-selection:
+        title: モデル
+        description: 視覚機能を持つモデルを選択
+        vision-only: 視覚モデル
+        all-models: すべてのモデル
+      capture-settings:
+        title: キャプチャ設定
+      capture-source:
+        label: キャプチャソース
+        description: AIRIが見ることができるものを選択
+        screen: 画面共有
+        camera: カメラ / ウェブカメラ
+        window: 特定のウィンドウ（デスクトップ）
+      analysis-mode:
+        label: 分析モード
+        description: AIRIが見たものをどのくらいの頻度で分析するか
+        on-demand: オンデマンド（手動）
+        continuous: 継続的（自動）
+      capture-interval:
+        label: キャプチャ間隔
+        description: キャプチャと分析の頻度
+      compression:
+        label: 画像品質
+        description: 低品質 = 小さいサイズ = より速く、より安く
+      info:
+        title: プライバシーについて
+        point1: 画像はメモリ内でのみ処理されます
+        point2: 画像はディスクに保存されません
+        point3: 画像は選択したプロバイダーAPIに送信されます
+      test:
+        title: 視覚テスト
+        not-configured: 視覚が設定されていません
+        not-configured-hint: テストするにはプロバイダーとモデルを選択してください
+        start-capture: キャプチャ開始
+        stop-capture: キャプチャ停止
+        analyze-now: 今すぐ分析
+        analyzing: 分析中...
+        quick-test: クイックテスト
+        error: エラー
+        result: 分析結果
+        placeholder: キャプチャを開始して分析すると結果が表示されます
+      status:
+        capturing: キャプチャ中
+        not-capturing: キャプチャ停止中
+        continuous: 継続モード
     x:
       description: X / Twitterの閲覧と使用
       title: X / Twitter

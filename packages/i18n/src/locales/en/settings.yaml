@@ -388,8 +388,63 @@ pages:
       title: Speech
     title: Modules
     vision:
-      description: Vision
+      description: Let AIRI see your screen, camera, or specific windows
       title: Vision
+      provider-description: Select a chat provider with vision capabilities
+      no-providers: No Providers Configured
+      no-providers-hint: Click here to set up your Chat providers
+      model-selection:
+        title: Model
+        description: Select a vision-capable model
+        vision-only: Vision Models
+        all-models: All Models
+      capture-settings:
+        title: Capture Settings
+      capture-source:
+        label: Capture Source
+        description: Choose what AIRI can see
+        screen: Screen Share
+        camera: Camera / Webcam
+        window: Specific Window (Desktop)
+      desktop-source:
+        screen-label: Select Screen
+        window-label: Select Window
+        description: Choose which screen or window to capture
+        loading: Loading available sources...
+        no-sources: No screens or windows available
+        refresh: Refresh sources
+      analysis-mode:
+        label: Analysis Mode
+        description: How often should AIRI analyze what it sees
+        on-demand: On-Demand (Manual)
+        continuous: Continuous (Auto)
+      capture-interval:
+        label: Capture Interval
+        description: How often to capture and analyze
+      compression:
+        label: Image Quality
+        description: Lower quality = smaller size = faster & cheaper
+      info:
+        title: Privacy Note
+        point1: Images are processed in memory only
+        point2: Images are NOT saved to disk
+        point3: Images are sent to your chosen provider API
+      test:
+        title: Vision Test
+        not-configured: Vision Not Configured
+        not-configured-hint: Please select a provider and model to test vision
+        start-capture: Start Capture
+        stop-capture: Stop Capture
+        analyze-now: Analyze Now
+        analyzing: Analyzing...
+        quick-test: Quick Test
+        error: Error
+        result: Analysis Result
+        placeholder: Start capture and analyze to see results
+      status:
+        capturing: Capturing
+        not-capturing: Not Capturing
+        continuous: Continuous Mode
     x:
       description: X / Twitter browsing and usage
       title: X / Twitter

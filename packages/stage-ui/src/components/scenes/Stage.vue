@@ -208,7 +208,7 @@ async function handleSpeechGeneration(ctx: { data: TTSChunkItem }) {
       : ctx.data.chunk
 
     // NOTICE: Check for custom generateSpeech capability (used by Google Cloud TTS and other non-OpenAI providers)
-    const providerMeta = providersStore.getProviderMetadataById(activeSpeechProvider.value)
+    const providerMeta = providersStore.getProviderMetadata(activeSpeechProvider.value)
     let res: ArrayBuffer
 
     if (providerMeta?.capabilities?.generateSpeech) {

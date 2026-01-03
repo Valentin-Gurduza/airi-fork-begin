@@ -10,6 +10,7 @@ import { useFactorioStore } from '../stores/modules/gaming-factorio'
 import { useMinecraftStore } from '../stores/modules/gaming-minecraft'
 import { useSpeechStore } from '../stores/modules/speech'
 import { useTwitterStore } from '../stores/modules/twitter'
+import { useVisionStore } from '../stores/modules/vision'
 
 export interface Module {
   id: string
@@ -33,6 +34,7 @@ export function useModulesList() {
   const twitterStore = useTwitterStore()
   const minecraftStore = useMinecraftStore()
   const factorioStore = useFactorioStore()
+  const visionStore = useVisionStore()
   const beatSyncState = ref<BeatSyncDetectorState>()
 
   const modulesList = computed<Module[]>(() => [
@@ -67,9 +69,9 @@ export function useModulesList() {
       id: 'vision',
       name: t('settings.pages.modules.vision.title'),
       description: t('settings.pages.modules.vision.description'),
-      icon: 'i-solar:eye-closed-bold-duotone',
+      icon: 'i-solar:eye-bold-duotone',
       to: '/settings/modules/vision',
-      configured: false,
+      configured: visionStore.configured,
       category: 'essential',
     },
     {
