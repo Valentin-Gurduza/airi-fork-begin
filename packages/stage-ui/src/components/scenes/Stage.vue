@@ -207,11 +207,27 @@ async function handleSpeechGeneration(ctx: { data: TTSChunkItem }) {
       ? speechStore.generateSSML(ctx.data.chunk, activeSpeechVoice.value, { ...providerConfig, pitch: pitch.value })
       : ctx.data.chunk
 
-    const res = await generateSpeech({
-      ...provider.speech(activeSpeechModel.value, providerConfig),
-      input,
-      voice: activeSpeechVoice.value.id,
-    })
+    // NOTICE: Check for custom generateSpeech capability (used by Google Cloud TTS and other non-OpenAI providers)
+    const providerMeta = providersStore.getProviderMetadataById(activeSpeechProvider.value)
+    let res: ArrayBuffer
+
+    if (providerMeta?.capabilities?.generateSpeech) {
+      // Use custom speech generation handler
+      res = await providerMeta.capabilities.generateSpeech(
+        providerConfig,
+        input,
+        activeSpeechVoice.value.id,
+        activeSpeechModel.value,
+      )
+    }
+    else {
+      // Use standard OpenAI-compatible API
+      res = await generateSpeech({
+        ...provider.speech(activeSpeechModel.value, providerConfig),
+        input,
+        voice: activeSpeechVoice.value.id,
+      })
+    }
 
     const audioBuffer = await audioContext.decodeAudioData(res)
     playbackQueue.value.enqueue({ audioBuffer, text: ctx.data.chunk, special: ctx.data.special })

@@ -491,6 +491,20 @@ pages:
       deepseek:
         description: DeepSeek.com
         title: 深度求索 DeepSeek
+      google-cloud-tts:
+        description: cloud.google.com/text-to-speech - Google Cloud TTS，提供WaveNet、Neural2和Studio语音，有免费额度。
+        title: Google Cloud TTS
+        fields:
+          field:
+            voice:
+              description: 选择语音（Standard、WaveNet、Neural2或Studio）
+              label: 语音
+            voiceType:
+              description: 选择语音类型（影响质量和免费额度）
+              label: 语音类型
+            audioEncoding:
+              description: 输出音频格式
+              label: 音频格式
       elevenlabs:
         description: Elevenlabs.io
         fields:

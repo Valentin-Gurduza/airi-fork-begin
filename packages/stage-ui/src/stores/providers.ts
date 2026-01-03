@@ -141,6 +141,11 @@ export interface ProviderMetadata {
     listModels?: (config: Record<string, unknown>) => Promise<ModelInfo[]>
     listVoices?: (config: Record<string, unknown>) => Promise<VoiceInfo[]>
     loadModel?: (config: Record<string, unknown>, hooks?: { onProgress?: (progress: ProgressInfo) => Promise<void> | void }) => Promise<void>
+    /**
+     * Custom speech generation handler for providers that don't use OpenAI-compatible APIs
+     * NOTICE: Used by Google Cloud TTS and other non-standard providers
+     */
+    generateSpeech?: (config: Record<string, unknown>, input: string, voice: string, model?: string) => Promise<ArrayBuffer>
   }
   validators: {
     validateProviderConfig: (config: Record<string, unknown>) => Promise<{
@@ -1412,6 +1417,236 @@ export const useProvidersStore = defineStore('providers', () => {
       ),
       validation: ['model_list'],
     }),
+    'google-cloud-tts': {
+      id: 'google-cloud-tts',
+      category: 'speech',
+      tasks: ['text-to-speech'],
+      nameKey: 'settings.pages.providers.provider.google-cloud-tts.title',
+      name: 'Google Cloud TTS',
+      descriptionKey: 'settings.pages.providers.provider.google-cloud-tts.description',
+      description: 'cloud.google.com/text-to-speech',
+      icon: 'i-simple-icons:googlecloud',
+      defaultOptions: () => ({
+        baseUrl: 'https://texttospeech.googleapis.com/v1/',
+        languageCode: 'en-US',
+        audioEncoding: 'MP3',
+      }),
+      createProvider: async (config) => {
+        // Google Cloud TTS uses a standard REST API
+        // NOTICE: model is required by the SpeechProvider interface but not used by Google Cloud TTS
+        const provider: SpeechProvider = {
+          speech: () => ({
+            baseURL: (config.baseUrl as string) || 'https://texttospeech.googleapis.com/v1/',
+            apiKey: config.apiKey as string,
+            model: 'google-cloud-tts',
+          }),
+        }
+        return provider
+      },
+      capabilities: {
+        /**
+         * Custom speech generation handler for Google Cloud TTS
+         * NOTICE: Google Cloud TTS uses a different API format than OpenAI-compatible providers
+         * Reference: https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize
+         */
+        generateSpeech: async (config, input: string, voice: string, _model?: string): Promise<ArrayBuffer> => {
+          const apiKey = config.apiKey as string
+          const baseUrl = (config.baseUrl as string) || 'https://texttospeech.googleapis.com/v1/'
+          const audioEncoding = (config.audioEncoding as string) || 'MP3'
+
+          if (!apiKey) {
+            throw new Error('API Key is required. Get one at https://console.cloud.google.com/apis/credentials')
+          }
+
+          // Extract language code from voice name (e.g., en-US-Standard-A -> en-US)
+          const languageMatch = voice.match(/^([a-z]{2,3}-[A-Z]{2})/)
+          const languageCode = languageMatch ? languageMatch[1] : 'en-US'
+
+          /**
+           * Determine if this voice requires a model name
+           * NOTICE: Certain voice types (Chirp 3 HD, Journey, Studio, Polyglot) require the 'model' field
+           * at the TOP LEVEL of the request body (NOT inside audioConfig)
+           * Reference: https://cloud.google.com/text-to-speech/docs/voices
+           */
+          function getModelForVoice(voiceName: string): string | null {
+            const voiceUpper = voiceName.toUpperCase()
+            if (voiceUpper.includes('CHIRP3-HD') || voiceUpper.includes('CHIRP-HD'))
+              return 'chirp3-hd'
+            if (voiceUpper.includes('CHIRP'))
+              return 'chirp'
+            if (voiceUpper.includes('JOURNEY'))
+              return 'journey'
+            if (voiceUpper.includes('STUDIO'))
+              return 'studio'
+            if (voiceUpper.includes('POLYGLOT'))
+              return 'polyglot'
+            // Standard, WaveNet, Neural2 voices don't require model field
+            return null
+          }
+
+          const model = getModelForVoice(voice)
+
+          // Build the Google Cloud TTS API request
+          // NOTICE: 'model' field is at TOP LEVEL when required, NOT inside audioConfig
+          const requestBody: Record<string, unknown> = {
+            input: { text: input },
+            voice: {
+              languageCode,
+              name: voice,
+            },
+            audioConfig: {
+              audioEncoding,
+            },
+          }
+
+          // Add model at top level if required by the voice type
+          if (model) {
+            requestBody.model = model
+          }
+
+          const url = `${baseUrl}text:synthesize?key=${apiKey}`
+
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          })
+
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Google Cloud TTS API error: ${response.status} - ${errorText}`)
+          }
+
+          const data = await response.json() as { audioContent: string }
+
+          // The audio is returned as base64 encoded
+          const audioContent = data.audioContent
+          if (!audioContent) {
+            throw new Error('No audio content in response')
+          }
+
+          // Decode base64 to ArrayBuffer
+          const binaryString = atob(audioContent)
+          const bytes = new Uint8Array(binaryString.length)
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i)
+          }
+
+          return bytes.buffer
+        },
+        listModels: async () => {
+          // Google Cloud TTS doesn't use models, it uses voice types
+          // Voice types determine pricing and quality
+          return [
+            {
+              id: 'standard',
+              name: 'Standard Voices',
+              provider: 'google-cloud-tts',
+              description: 'Standard quality voices. Free tier: 4 million characters/month',
+              deprecated: false,
+            },
+            {
+              id: 'wavenet',
+              name: 'WaveNet Voices',
+              provider: 'google-cloud-tts',
+              description: 'High-quality neural voices. Free tier: 4 million characters/month',
+              deprecated: false,
+            },
+            {
+              id: 'neural2',
+              name: 'Neural2 Voices',
+              provider: 'google-cloud-tts',
+              description: 'Advanced neural voices. Free tier: 1 million characters/month',
+              deprecated: false,
+            },
+            {
+              id: 'studio',
+              name: 'Studio Voices',
+              provider: 'google-cloud-tts',
+              description: 'Premium studio-quality voices. Free tier: 1 million characters/month',
+              deprecated: false,
+            },
+            {
+              id: 'chirp3-hd',
+              name: 'Chirp 3: HD Voices',
+              provider: 'google-cloud-tts',
+              description: 'Latest HD voices with unparalleled realism. Free tier: 1 million characters/month',
+              deprecated: false,
+            },
+          ]
+        },
+        listVoices: async (config) => {
+          // Try to fetch voices from the API if credentials are available
+          const apiKey = config.apiKey as string
+          const baseUrl = (config.baseUrl as string) || 'https://texttospeech.googleapis.com/v1/'
+
+          if (apiKey) {
+            try {
+              const response = await fetch(`${baseUrl}voices?key=${apiKey}`)
+              if (response.ok) {
+                const data = await response.json() as { voices: Array<{ name: string, languageCodes: string[], ssmlGender: string, naturalSampleRateHertz: number }> }
+                return data.voices.map(voice => ({
+                  id: voice.name,
+                  name: voice.name,
+                  provider: 'google-cloud-tts',
+                  gender: voice.ssmlGender,
+                  languages: voice.languageCodes.map(code => ({
+                    code,
+                    title: code,
+                  })),
+                }))
+              }
+            }
+            catch {
+              // Fall back to static list
+            }
+          }
+
+          // Return common voices as fallback
+          const commonVoices = [
+            { id: 'en-US-Standard-A', name: 'English US Standard A', gender: 'MALE', lang: 'en-US' },
+            { id: 'en-US-Standard-B', name: 'English US Standard B', gender: 'MALE', lang: 'en-US' },
+            { id: 'en-US-Standard-C', name: 'English US Standard C', gender: 'FEMALE', lang: 'en-US' },
+            { id: 'en-US-Standard-D', name: 'English US Standard D', gender: 'MALE', lang: 'en-US' },
+            { id: 'en-US-Wavenet-A', name: 'English US WaveNet A', gender: 'MALE', lang: 'en-US' },
+            { id: 'en-US-Wavenet-C', name: 'English US WaveNet C', gender: 'FEMALE', lang: 'en-US' },
+            { id: 'en-US-Neural2-A', name: 'English US Neural2 A', gender: 'MALE', lang: 'en-US' },
+            { id: 'en-US-Neural2-C', name: 'English US Neural2 C', gender: 'FEMALE', lang: 'en-US' },
+            { id: 'en-GB-Standard-A', name: 'English UK Standard A', gender: 'FEMALE', lang: 'en-GB' },
+            { id: 'en-GB-Standard-B', name: 'English UK Standard B', gender: 'MALE', lang: 'en-GB' },
+            { id: 'ja-JP-Standard-A', name: 'Japanese Standard A', gender: 'FEMALE', lang: 'ja-JP' },
+            { id: 'ja-JP-Standard-B', name: 'Japanese Standard B', gender: 'FEMALE', lang: 'ja-JP' },
+            { id: 'ja-JP-Wavenet-A', name: 'Japanese WaveNet A', gender: 'FEMALE', lang: 'ja-JP' },
+            { id: 'cmn-CN-Standard-A', name: 'Chinese Mandarin Standard A', gender: 'FEMALE', lang: 'cmn-CN' },
+            { id: 'cmn-CN-Standard-B', name: 'Chinese Mandarin Standard B', gender: 'MALE', lang: 'cmn-CN' },
+            { id: 'cmn-CN-Wavenet-A', name: 'Chinese Mandarin WaveNet A', gender: 'FEMALE', lang: 'cmn-CN' },
+          ]
+
+          return commonVoices.map(voice => ({
+            id: voice.id,
+            name: voice.name,
+            provider: 'google-cloud-tts',
+            gender: voice.gender,
+            languages: [{ code: voice.lang, title: voice.lang }],
+          }))
+        },
+      },
+      validators: {
+        validateProviderConfig: async (config: Record<string, unknown>) => {
+          const errors: Error[] = []
+          if (!config.apiKey) {
+            errors.push(new Error('API Key is required'))
+          }
+          return {
+            errors,
+            reason: errors.length > 0 ? errors.map(e => e.message).join(', ') : '',
+            valid: errors.length === 0,
+          }
+        },
+      },
+    },
     'comet-api-transcription': buildOpenAICompatibleProvider({
       id: 'comet-api-transcription',
       name: 'CometAPI Transcription',

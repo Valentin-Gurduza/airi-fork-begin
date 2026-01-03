@@ -491,6 +491,20 @@ pages:
       deepseek:
         description: deepseek.com
         title: DeepSeek
+      google-cloud-tts:
+        description: cloud.google.com/text-to-speech - Google Cloud TTSでWaveNet、Neural2、Studioボイスを提供。無料枠あり。
+        title: Google Cloud TTS
+        fields:
+          field:
+            voice:
+              description: ボイスを選択 (Standard, WaveNet, Neural2, または Studio)
+              label: ボイス
+            voiceType:
+              description: ボイスタイプを選択（品質と無料枠に影響）
+              label: ボイスタイプ
+            audioEncoding:
+              description: 出力オーディオ形式
+              label: オーディオ形式
       elevenlabs:
         description: elevenlabs.io
         fields:

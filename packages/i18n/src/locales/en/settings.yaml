@@ -511,6 +511,20 @@ pages:
       deepseek:
         description: deepseek.com
         title: DeepSeek
+      google-cloud-tts:
+        description: cloud.google.com/text-to-speech - Google Cloud TTS with WaveNet, Neural2, and Studio voices. Free tier available.
+        title: Google Cloud TTS
+        fields:
+          field:
+            voice:
+              description: Select a voice (Standard, WaveNet, Neural2, or Studio)
+              label: Voice
+            voiceType:
+              description: Select voice type (affects quality and free tier quota)
+              label: Voice Type
+            audioEncoding:
+              description: Output audio format
+              label: Audio Format
       elevenlabs:
         description: elevenlabs.io
         fields:
